@@ -38,6 +38,31 @@ void Nose::setRL(float x)
     _RL = x;
 }
 
+void Nose::setB(float x)
+{
+    _b = x;
+}
+
+void Nose::setM(float x)
+{
+    _m = x;
+}
+
+void Nose::getRL()
+{
+    return _RL;
+}
+
+void Nose::getB()
+{
+    return _b;
+}
+
+void Nose::getm()
+{
+    return _m;
+}
+
 float Nose::getOutput()
 {
     _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors

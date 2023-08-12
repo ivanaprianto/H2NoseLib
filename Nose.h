@@ -13,6 +13,11 @@ class Nose
         void setPin1(int x);
         void setPin2(int x);
         void setRL(float x);
+        void setB(float x);
+        void setM(float x);
+        void getRL();
+        void getB();
+        void getM();
     private:
         int _pin1;
         int _pin2;
