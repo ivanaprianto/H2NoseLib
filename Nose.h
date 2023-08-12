@@ -9,6 +9,10 @@ class Nose
         Nose(int pin1, int pin2, bool isPPB, float b, float m, float rsr0, bool isMG811, String gastype, float rl, bool comm);
         float getOutput();
         void printOutput();
+        void setRSR0(float x);
+        void setPin1(int x);
+        void setPin2(int x);
+        void setRL(float x);
     private:
         int _pin1;
         int _pin2;

@@ -18,6 +18,26 @@ Nose::Nose(int pin1, int pin2, bool isPPB, float b, float m, float rsr0, bool is
     _com = comm; //separate print with comma
 }
 
+void Nose::setRSR0(float x)
+{
+    _rsr0 = x;
+}
+
+void Nose::setPin1(int x)
+{
+    _pin1 = x;
+}
+
+void Nose::setPin2(int x)
+{
+    _pin2 = x;
+}
+
+void Nose::setRL(float x)
+{
+    _RL = x;
+}
+
 float Nose::getOutput()
 {
     _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors

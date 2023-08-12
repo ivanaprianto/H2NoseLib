@@ -1,3 +1,6 @@
+/*
+define the pins
+*/
 #define MQ2_A A0
 #define MQ2_B A1
 #define MQ3_A A2
@@ -12,13 +15,23 @@
 #define MQ9_B A13
 #define MG811_A A14
 #define MG811_B A15
+
+/*
+include the masterpiece that is my library
+*/
 #include <Nose.h>
 
+/*
+define ratio of resistance in air and R0
+*/
 const float rsr02 = 9.83;
 const float rsr03 = 60.0;
 const float rsr04 = 4.4;
 const float rsr07 = 27.5;
 
+/*
+contains the values for exponential regression values of each sensor and gas type
+*/
 const double b2_h2 = 3.99626591;
 const double m2_h2 = -1.1690194965;
 
@@ -43,11 +56,20 @@ const double b2_propane = 1.3504783634;
 const double MG811_V400 = 0.480;
 const double MG811_V4000 = 1.995;
 
+/*
+define load resistence
+in k
+*/
 const float rl2 = 70;
 const float rl7 = 10;
 const float rl4 = 20;
 const float rl3 = 200;
 
+/*
+make the class
+ex:
+Nose DEVICE_GAS(devicepin1, devicepin2, measure in ppb(1/1000th of a ppm), b value(v400 for MG811), m value(V4000), air/r0 ratio, mg811 or not, name of has that will be used for the dict, load resistance, add comma to the beginning of the printout)
+*/
 Nose MQ2_H2(MQ2_A, MQ2_B, false, b2_h2, m2_h2, rsr02, false, "H2", rl2, false);
 Nose MQ7_CO(MQ7_A, MQ7_B, false, b7_co, m7_co, rsr07, false, "CO", rl7, true);
 Nose MG811_CO2(MG811_A, MG811_B, false, MG811_V400, MG811_V4000, rsr02, true, "CO2", 0, true);
@@ -58,10 +80,18 @@ Nose MQ3_OH(MQ3_A, MQ3_B, false, b3_alcohol, m3_alcohol, rsr03, false, "OH", rl3
 Nose MQ2_LPG(MQ2_A, MQ2_B, false, b2_propane, m2_propane, rsr02, false, "LPG", rl2, true);
 
 void setup() {
+  /*
+  if using the laser sensor set to 115200
+  else use 9600
+  */
   Serial.begin(9600);
 }
 
 void loop() {
+  /*
+  get the output of the sensors
+  in ppm
+  */
   MQ2_H2.getOutput();
   MQ7_CO.getOutput();
   MG811_CO2.getOutput();
@@ -71,7 +101,10 @@ void loop() {
   MQ3_OH.getOutput();
   MQ2_LPG.getOutput();
 
-  
+  /*
+  send to jetson via serial
+  jetson receives dictionary
+  */
   Serial.print("{");
   MQ2_H2.printOutput();
   MQ7_CO.printOutput();
