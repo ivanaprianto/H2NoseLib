@@ -58,9 +58,16 @@ void Nose::getB()
     return _b;
 }
 
-void Nose::getm()
+void Nose::getM()
 {
     return _m;
+}
+
+void Nose::getVoltage()
+{
+    _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors
+    _volt = _readout*(5.0/1023); //Convert to voltage
+    return _volt;
 }
 
 float Nose::getOutput()

@@ -18,6 +18,7 @@ class Nose
         void getRL();
         void getB();
         void getM();
+        void getVoltage();
     private:
         int _pin1;
         int _pin2;
