@@ -48,22 +48,22 @@ void Nose::setM(float x)
     _m = x;
 }
 
-void Nose::getRL()
+float Nose::getRL()
 {
     return _RL;
 }
 
-void Nose::getB()
+float Nose::getB()
 {
     return _b;
 }
 
-void Nose::getM()
+float Nose::getM()
 {
     return _m;
 }
 
-void Nose::getVoltage()
+float Nose::getVoltage()
 {
     _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors
     _volt = _readout*(5.0/1023); //Convert to voltage
@@ -126,6 +126,6 @@ float Nose::calibrate()
     _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors
     _volt = _readout*(5.0/1023); //Convert to voltage
     float RS_air = ((5.0*_RL)/_volt)-_RL; //Get value of RS in a gas
-    float R0 = Rs_air/_R0
+    float R0 = RS_air/_R0;
     return R0;
 }
