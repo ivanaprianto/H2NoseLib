@@ -4,23 +4,23 @@
 #include "Arduino.h"
 #include "Nose.h"
 
-Nose::Nose(int pin1, int pin2, bool isPPB, float b, float m, float rsr0, bool isMG811, String gastype, float rl, bool comm)
+Nose::Nose(int pin1, int pin2, bool isPPB, float b, float m, float ratioInCleanAir, bool isMG811, String gasType, float rl, bool comm)
 {
     _pin1 = pin1; //1st sensor
     _pin2 = pin2; //2nd sensor
     _isPPB = isPPB; //for MQ3
     _b = b; //V400 in MG811
     _m = m; //V4000 in MG811
-    _rsr0 = rsr0; //RS/R0 ratio
+    _R0 = ratioInCleanAir; //Clean air to R0 ratio
     _isMG811 = isMG811; //for MG811
-    _gastype = gastype; //H2, CH4, C3H8, etc.
+    _gasType = gasType; //H2, CH4, C3H8, etc.
     _RL = rl; //load resistance
     _com = comm; //separate print with comma
 }
 
-void Nose::setRSR0(float x)
+void Nose::setRatioInCleanAir(float x)
 {
-    _rsr0 = x;
+    _R0 = x;
 }
 
 void Nose::setPin1(int x)
@@ -83,7 +83,7 @@ float Nose::getOutput()
         return _buffer_final; //return in ppm
     } else {
         _RS_gas = ((5.0*_RL)/_volt)-_RL; //Get value of RS in a gas
-        _ratio = _RS_gas/_rsr0;  // Get ratio RS_gas/RS_air
+        _ratio = _RS_gas/_R0;  // Get ratio RS_gas/RS_air
         _ppm_log = (log10(_ratio)-_b)/_m; //Get ppm value in linear scale according to the the ratio value  
         _ppm = pow(10, _ppm_log); //Convert ppm value to log scale 
         if (_isPPB){
@@ -98,16 +98,34 @@ float Nose::getOutput()
 void Nose::printOutput()
 {
     if(_isMG811){
-        Serial.print(",\""+_gastype+"\""+":"+_buffer_final);
+        Serial.print(",\""+_gasType+"\""+":"+_buffer_final);
     } else {
         if (_isPPB){
-            Serial.print("\""+_gastype+"\""+":"+_ppb);
+            Serial.print("\""+_gasType+"\""+":"+_ppb);
         } else {
             if (_com){
-                Serial.print(",\""+_gastype+"\""+":"+_ppm); 
+                Serial.print(",\""+_gasType+"\""+":"+_ppm); 
             } else {
-                Serial.print("\""+_gastype+"\""+":"+_ppm);   
+                Serial.print("\""+_gasType+"\""+":"+_ppm);   
             }
         }
     }
+}
+
+float Nose::calculateRLoffset(float targetRL)
+{
+    _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors
+    _volt = _readout*(5.0/1023); //Convert to voltage
+    float targetRS = ((5.0*targetRL)/_volt)-targetRL;
+    _RS_gas = ((5.0*_RL)/_volt)-_RL; //Get value of RS in a gas
+    return (_RS_gas - targetRS);
+}
+
+float Nose::calibrate()
+{
+    _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors
+    _volt = _readout*(5.0/1023); //Convert to voltage
+    float RS_air = ((5.0*_RL)/_volt)-_RL; //Get value of RS in a gas
+    float R0 = Rs_air/_R0
+    return R0;
 }
