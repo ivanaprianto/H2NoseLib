@@ -112,7 +112,7 @@ void Nose::printOutput()
     }
 }
 
-float Nose::calculateRLoffset(float targetRL)
+float Nose::calculateRLoffset(float targetRL) //does nothing, will make it useful later
 {
     _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors
     _volt = _readout*(5.0/1023); //Convert to voltage
