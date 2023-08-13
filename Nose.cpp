@@ -112,13 +112,18 @@ void Nose::printOutput()
     }
 }
 
-float Nose::calculateRLoffset(float targetRL) //does nothing, will make it useful later
+float Nose::calculateRLoffset(float targetRL, float targetPPM) //does nothing, will make it useful later
 {
     _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors
-    _volt = _readout*(5.0/1023); //Convert to voltage
-    float targetRS = ((5.0*targetRL)/_volt)-targetRL;
-    _RS_gas = ((5.0*_RL)/_volt)-_RL; //Get value of RS in a gas
-    return (_RS_gas - targetRS);
+
+    float targetPPM_log = log10(targetPPM);
+    float c = (targetPPM_log*_m+_b);
+    float targetRatio = pow(10, c);
+    float targetRS = targetRatio*_R0;
+    float targetVolt = (5.0 * targetRL)/(targetRS + targetRL);
+    float targetReadout = (targetVolt/5.0)*1023;
+
+    return _readout - targetReadout;
 }
 
 float Nose::calibrate()

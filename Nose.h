@@ -27,7 +27,7 @@ class Nose
         float getVoltage();
 
         //tools
-        float calculateRLoffset(float targetRL);
+        float calculateRLoffset(float targetRL, float targetPPM);
         float calibrate();
 
     private:
