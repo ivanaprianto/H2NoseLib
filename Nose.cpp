@@ -18,7 +18,7 @@ Nose::Nose(int pin1, int pin2, bool isPPB, float b, float m, float ratioInCleanA
     _com = comm; //separate print with comma
 }
 
-Nose::Thermocouple(int8_t SCLK, int8_t CS, int8_t MISO)
+Thermocouple::Thermocouple(int8_t SCLK, int8_t CS, int8_t MISO)
 {
     _sclk = SCLK;
     _cs = CS;
@@ -164,7 +164,7 @@ float Nose::calibrate()
     return R0;
 }
 
-float Nose::readTemps(void)
+float Thermocouple::readTemps(void)
 {
     uint16_t v;
 
@@ -185,7 +185,7 @@ float Nose::readTemps(void)
     return v * 0.25;
 }
 
-byte Nose::spiRead(void)
+byte Thermocouple::spiRead(void)
 {
     int i;
     byte d = 0;
