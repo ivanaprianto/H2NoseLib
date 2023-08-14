@@ -5,7 +5,7 @@ A simple library made to help the development of the electronic nose project usi
 Quick example on how to use
 
 # Nose class
-<h1>Nose nose(int pin1, int pin2, bool isPPB, float b, float m, float rsr0, bool isMG811, String gastype, float rl, bool comm);</h1>
+<h3>Nose nose(int pin1, int pin2, bool isPPB, float b, float m, float rsr0, bool isMG811, String gastype, float rl, bool comm);</h3>
 
 
 "nose" will be the name of the sensor (or in the case of the H2Nose project, the device name and gas type(ex:MQ2_H2))
@@ -26,11 +26,11 @@ rl is the load resistence of the sensor
 
 comm is just used to add a comma in front of the values so the python code in the jetson can separate it
 
-<h2>nose.getOutput()</h2>
+<h3>nose.getOutput()</h3>
 
 outputs the PPM value
 
-<h2>nose.printOutput()</h2>
+<h3>nose.printOutput()</h3>
 
 self explanatory
 
