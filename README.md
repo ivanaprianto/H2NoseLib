@@ -39,4 +39,4 @@ self explanatory
 <h3>Thermocouple thermocouple(SCLK, CS, DO)</h3>
 
 
-"thermocouple" name it as you wish then input the SCLk, CS, and DO pins
+"thermocouple" name it as you wish then input the SCLK, CS, and DO pins
