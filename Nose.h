@@ -62,6 +62,6 @@ class Thermocouple
     private:
         int8_t _sclk, _cs, _miso;
         uint8_t spiRead(void);
-}
+};
 
 #endif
