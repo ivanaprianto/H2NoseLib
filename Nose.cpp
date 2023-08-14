@@ -150,7 +150,7 @@ float Nose::calculateCurrentRL(float targetPPM){
     float c = (targetPPM_log*_m+_b);
     float targetRatio = pow(10, c);
     float targetRS = targetRatio*_R0;
-    float realRL = (_volt*targetRS) / (5.0-_volt)
+    float realRL = (_volt*targetRS) / (5.0-_volt);
 
     return realRL;
 }
