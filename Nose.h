@@ -28,6 +28,7 @@ class Nose
 
         //tools
         float calculateRLoffset(float targetRL, float targetPPM);
+        float calculateCurrentRL(float targetPPM);
         float calibrate();
 
     private:

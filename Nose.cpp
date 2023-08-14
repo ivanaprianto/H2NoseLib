@@ -116,14 +116,29 @@ float Nose::calculateRLoffset(float targetRL, float targetPPM) //does nothing, w
 {
     _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors
 
+    //simply reverses the getOutput() function and tries to find the 10bit data of a specific ppm in a specific load resistance
+    float targetPPM_log = log10(targetPPM); 
+    float c = (targetPPM_log*_m+_b);
+    float targetRatio = pow(10, c);
+    float targetRS = targetRatio*_R0;
+    float targetVolt = (5.0 * targetRL)/(targetRS + targetRL); 
+    float targetReadout = (targetVolt/5.0)*1023;
+
+    return _readout - targetReadout;
+}
+
+float Nose::calculateCurrentRL(float targetPPM){
+    _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors
+    _volt = _readout*(5.0/1023); //Convert to voltage
+
+    //instead of calculating for readout, it calculates the value of realRL to determine the actual load resistance of the sensor in a specific ppm
     float targetPPM_log = log10(targetPPM);
     float c = (targetPPM_log*_m+_b);
     float targetRatio = pow(10, c);
     float targetRS = targetRatio*_R0;
-    float targetVolt = (5.0 * targetRL)/(targetRS + targetRL);
-    float targetReadout = (targetVolt/5.0)*1023;
+    float realRL = (_volt*targetRS) / (5.0-_volt)
 
-    return _readout - targetReadout;
+    return realRL;
 }
 
 float Nose::calibrate()
