@@ -18,6 +18,20 @@ Nose::Nose(int pin1, int pin2, bool isPPB, float b, float m, float ratioInCleanA
     _com = comm; //separate print with comma
 }
 
+Nose::Thermocouple(int8_t SCLK, int8_t CS, int8_t MISO)
+{
+    _sclk = SCLK;
+    _cs = CS;
+    _miso = MISO;
+
+    // define pin modes
+    pinMode(_cs, OUTPUT);
+    pinMode(_sclk, OUTPUT);
+    pinMode(_miso, INPUT);
+
+    digitalWrite(_cs, HIGH);
+}
+
 void Nose::setRatioInCleanAir(float x)
 {
     _R0 = x;
@@ -148,4 +162,42 @@ float Nose::calibrate()
     float RS_air = ((5.0*_RL)/_volt)-_RL; //Get value of RS in a gas
     float R0 = RS_air/_R0;
     return R0;
+}
+
+float Nose::readTemps(void)
+{
+    uint16_t v;
+
+    digitalWrite(_cs, LOW);
+    delayMicroseconds(10);
+
+    v = spiRead();
+    v <<= 8;
+    v |= spiRead();
+
+    digitalWrite(_cs, HIGH);
+
+    if (v & 0x4) {
+        return NAN;
+    }
+
+    v >>= 3;
+    return v * 0.25;
+}
+
+byte Nose::spiRead(void)
+{
+    int i;
+    byte d = 0;
+
+    for (i =7; i >= 0; i--){
+        digitalWrite(_sclk, LOW);
+        delayMicroseconds(10);
+        if (digitalRead(_miso)){
+            d |= (1 << i);
+        }
+        digitalWrite(_sclk, HIGH);
+        delayMicroseconds(10);
+    }
+    return d;
 }

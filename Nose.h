@@ -7,6 +7,7 @@ class Nose
 {
     public:
         Nose(int pin1, int pin2, bool isPPB, float b, float m, float ratioInCleanAir, bool isMG811, String gasType, float rl, bool comm);
+        Thermocouple(int8_t SCLK, int8_t CS, int8_t MISO);
 
         //general functions
         void printOutput();
@@ -19,6 +20,7 @@ class Nose
 
         //get main data
         float getOutput();
+        float readTemps(void);
 
         //other data
         float getRL();
@@ -51,6 +53,8 @@ class Nose
         float _ppb;
         float _RL;
         bool _com;
+        int8_t _sclk, _cs, _miso;
+        uint8_t spiRead(void);
 };
 
 #endif
