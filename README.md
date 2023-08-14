@@ -36,7 +36,7 @@ self explanatory
 
 
 # Thermocouple class
-<h1>Thermocouple thermocouple(SCLK, CS, DO)</h1>
+<h3>Thermocouple thermocouple(SCLK, CS, DO)</h3>
 
 
 "thermocouple" name it as you wish then input the SCLk, CS, and DO pins
