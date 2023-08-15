@@ -40,3 +40,5 @@ self explanatory
 
 
 "thermocouple" name it as you wish then input the SCLK, CS, and DO pins
+
+to get the temperature in degrees celsius simply "thermocouple.readTemps();" to get the data
