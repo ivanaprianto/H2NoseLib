@@ -155,6 +155,28 @@ float Nose::calculateCurrentRL(float targetPPM){
     return realRL;
 }
 
+float Nose::calculateIntersect(float m, float targetPPM){
+    _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors
+    _volt = _readout*(5.0/1023); //Convert to voltage
+    _RS_gas = ((5.0*_RL)/_volt)-_RL; //Get value of RS in a gas
+    _ratio = _RS_gas/_R0;  // Get ratio RS_gas/RS_air
+
+    float targetPPM_log = log10(targetPPM); 
+    float b = log10(_ratio) - (m*targetPPM_log);
+    return b;
+}
+
+float Nose::calculateGradient(float b, float targetPPM){
+    _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors
+    _volt = _readout*(5.0/1023); //Convert to voltage
+    _RS_gas = ((5.0*_RL)/_volt)-_RL; //Get value of RS in a gas
+    _ratio = _RS_gas/_R0;  // Get ratio RS_gas/RS_air
+
+    float targetPPM_log = log10(targetPPM); 
+    float m = (log10(_ratio) - b)/targetPPM_log;
+    return m;
+}
+
 float Nose::calibrate()
 {
     _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors

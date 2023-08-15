@@ -28,6 +28,8 @@ class Nose
 
         //tools
         float calculateRLoffset(float targetRL, float targetPPM);
+        float calculateGradient(float b, float targetPPM);
+        float calculateIntersect(float m, float targetPPM);
         float calculateCurrentRL(float targetPPM);
         float calibrate();
 
