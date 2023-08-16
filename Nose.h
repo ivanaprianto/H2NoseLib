@@ -31,6 +31,7 @@ class Nose
         float calculateGradient(float b, float targetPPM);
         float calculateIntersect(float m, float targetPPM);
         float calculateCurrentRL(float targetPPM);
+        float gradientDescent(float o, float h, float lr, float c);
         float calibrate();
 
     private:
@@ -53,6 +54,8 @@ class Nose
         float _ppb;
         float _RL;
         bool _com;
+        float f(float x, float o);
+        float d(float x, float h, float o);
 };
 
 class Thermocouple

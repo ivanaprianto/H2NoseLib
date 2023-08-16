@@ -177,6 +177,24 @@ float Nose::calculateGradient(float b, float targetPPM){
     return m;
 }
 
+float Nose::gradientDescent(float o, float h, float lr, float c){
+    if(c != o){
+        c -= (d(c)*lr);
+    } else {
+        c = c;
+    }
+}
+
+float Nose::f(float x, float o)
+{
+    return abs(pow(2, (o - x)));
+}
+
+float Nose::d(float x, float h, float o)
+{
+    return round((f(x + h, o)-f(x, o))/h);
+}
+
 float Nose::calibrate()
 {
     _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors
