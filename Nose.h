@@ -69,4 +69,18 @@ class Thermocouple
         uint8_t spiRead(void);
 };
 
+class ZE07H2
+{
+    public:
+        ZE07H2();
+
+        void begin(Stream *ser);
+        void setMode(int m = 0);
+        void requestH2();
+        float readH2();
+
+    private:
+        Stream *_s;
+};
+
 #endif

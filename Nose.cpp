@@ -241,3 +241,106 @@ byte Thermocouple::spiRead(void)
     }
     return d;
 }
+
+ZE07H2::ZE07H2()
+{
+    _s = NULL;
+}
+
+ZE07H2::begin(Stream *ser)
+{
+    _s = ser;
+    _s->begin(9600);
+}
+
+void ZE07H2::setMode(int m)
+{
+    const byte Start      = 0xFF;
+    const byte Sensor     = 0x01;
+    const byte Command    = 0x78;
+    byte Mode;
+    if (m == 1) {
+        Mode       = 0x41;
+    } else {
+        Mode       = 0x40;
+    }
+    const byte Zero       = 0x00;
+    const byte Checksum   = 0x46;
+
+    byte request[9] = 
+    {
+        Start,
+        Sensor,
+        Command,
+        Mode,
+        Zero,
+        Zero,
+        Zero,
+        Zero,
+        Checksum
+    };
+
+    _s->write(request, 9);
+
+    _s->flush();
+}
+
+void ZE07H2::requestH2()
+{
+    const byte Start      = 0xFF;
+    const byte Sensor     = 0x01;
+    const byte Command    = 0x86;
+    const byte Zero       = 0x00;
+    const byte Checksum   = 0x79;
+
+    byte request[9] = 
+    {
+        Start,
+        Sensor,
+        Command,
+        Mode,
+        Zero,
+        Zero,
+        Zero,
+        Zero,
+        Checksum
+    };
+
+    _s->write(request, 9);
+
+    _s->flush();
+}
+
+float ZE07H2::readH2()
+{
+    while (_s->available() > 0 && _s->peek() != 0xFF) 
+    {
+        _s->read();
+        delay(1);
+    }
+
+    _s->readBytes(response, 9);
+
+    if (response[0] != 0xFF && (response[1] != 0x86 || response[1] != 0x04))
+    {
+        return -1;
+    }
+
+    byte checksum = 0;
+    for (int i = 1; i < 8; i++) 
+    {
+        checksum += response[i];
+    }
+    checksum = 0xFF - checksum;
+    checksum++;
+
+    if (response[8] != checksum) 
+    {
+        return -2;
+    }
+
+    int low  = (int)response[4];
+    int high = (int)response[5];
+    float ppm = (high * 256 + low) * 0.1;
+    return ppm;
+}
