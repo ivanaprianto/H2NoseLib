@@ -18,6 +18,7 @@ class Nose
         void setRL(float x);
         void setB(float x);
         void setM(float x);
+        void setPPM(float x);
 
         //get main data
         float getOutput();

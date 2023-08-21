@@ -79,15 +79,14 @@ float Nose::getM()
 
 float Nose::getVoltage()
 {
-    _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors
-    _volt = _readout*(5.0/1023); //Convert to voltage
+    _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2;
+    _volt = (_readout * (5.0/1023.0));
     return _volt;
 }
 
 float Nose::getOutput()
 {
-    _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors
-    _volt = _readout*(5.0/1023); //Convert to voltage
+    _volt = getVoltage();
     if(_isMG811){
         _buffer = 0;
         _buffer = (_b - _m)/(log10(400) - log10(40000)); // Delta V
@@ -107,6 +106,11 @@ float Nose::getOutput()
             return _ppm; //return conversion value (in parts per million)
         }
     }
+}
+
+void Nose::setPPM(float x)
+{
+    _ppm = x;
 }
 
 void Nose::printOutput()
