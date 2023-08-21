@@ -1,6 +1,8 @@
 #ifndef Nose_H
 #define Nose_H
 
+#define MAXLENGTH 9
+
 #include <Arduino.h>
 
 class Nose
@@ -72,15 +74,24 @@ class Thermocouple
 class ZE07H2
 {
     public:
-        ZE07H2();
-
-        void begin(Stream *ser);
-        void setMode(int m = 0);
-        void requestH2();
-        float readH2();
+        ZE07H2(HardwareSerial *Serial);	//read the uart signal by hardware uart,such as D0
+        //   ZE07H2(SoftwareSerial *Serial);	//read the uart signal by software uart,such as D10
+        ZE07H2(int pin,float ref);			//read the analog signal by analog input pin ,such as A2; ref:voltage on AREF pin
+        boolean available(uint16_t timeout);		//new data was recevied
+        float uartReadPPM();		//get the concentration(ppm) by uart signal
+        float dacReadPPM();		//get the concentration(ppm) by analog signal
 
     private:
-        Stream *_s;
+        Stream *mySerial;
+        byte receivedCommandStack[MAXLENGTH];
+        byte checkSum(byte array[],byte length);
+        void boucle();
+        boolean receivedFlag;
+        byte _sensorPin;
+        enum STAT_ZE07 { STATUS_WAITING, STATUS_OK };	
+        STAT_ZE07 _status;
+        uint8_t _index = 0;
+        float _ref;
 };
 
 #endif

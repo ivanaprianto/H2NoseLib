@@ -179,7 +179,7 @@ float Nose::calculateGradient(float b, float targetPPM){
 
 float Nose::gradientDescent(float o, float h, float lr, float c){
     if(c != o){
-        c -= (d(c)*lr);
+        c -= (d(c, h, o)*lr);
     } else {
         c = c;
     }
@@ -242,105 +242,109 @@ byte Thermocouple::spiRead(void)
     return d;
 }
 
-ZE07H2::ZE07H2()
+ZE07H2::ZE07H2(HardwareSerial *Serial)	//read the uart signal by hardware uart,such as D0
 {
-    _s = NULL;
+    mySerial = Serial;
+    receivedFlag = 0;
 }
 
-ZE07H2::begin(Stream *ser)
+// ZE07H2::ZE07H2(SoftwareSerial *Serial)	//read the uart signal by software uart,such as D10
+// {
+//     mySerial = Serial;
+//     receivedFlag = 0;
+// }
+
+ZE07H2:: ZE07H2(int pin,float ref)//read the analog signal by analog input pin ,such as A2; ref:voltage on AREF pin
 {
-    _s = ser;
-    _s->begin(9600);
+    _sensorPin = pin;
+    _ref = ref;											//for arduino uno ,the ref should be 5.0V(Typical)
 }
 
-void ZE07H2::setMode(int m)
+byte ZE07H2::checkSum(byte array[],byte length)	
 {
-    const byte Start      = 0xFF;
-    const byte Sensor     = 0x01;
-    const byte Command    = 0x78;
-    byte Mode;
-    if (m == 1) {
-        Mode       = 0x41;
-    } else {
-        Mode       = 0x40;
-    }
-    const byte Zero       = 0x00;
-    const byte Checksum   = 0x46;
-
-    byte request[9] = 
+    byte sum = 0;
+    for(int i = 1; i < length-1; i ++)
     {
-        Start,
-        Sensor,
-        Command,
-        Mode,
-        Zero,
-        Zero,
-        Zero,
-        Zero,
-        Checksum
-    };
-
-    _s->write(request, 9);
-
-    _s->flush();
+		sum += array[i];
+    }
+    sum = (~sum) + 1;
+    return sum;
 }
 
-void ZE07H2::requestH2()
+void ZE07H2::boucle()
 {
-    const byte Start      = 0xFF;
-    const byte Sensor     = 0x01;
-    const byte Command    = 0x86;
-    const byte Zero       = 0x00;
-    const byte Checksum   = 0x79;
-
-    byte request[9] = 
-    {
-        Start,
-        Sensor,
-        Command,
-        Mode,
-        Zero,
-        Zero,
-        Zero,
-        Zero,
-        Checksum
-    };
-
-    _s->write(request, 9);
-
-    _s->flush();
+  _status = STATUS_WAITING;
+  if (mySerial->available()){
+    uint8_t ch = mySerial->read();
+    switch (_index){
+    case 0:
+      if (ch != 0xFF){
+        return;
+      }
+      receivedCommandStack[_index]=ch;
+      break;
+    case 1:
+      if (ch != 0x04){
+        _index = 0;
+        return;
+      }
+      receivedCommandStack[_index]=ch;
+      break;
+    case 2:
+     if (ch != 0x03){
+        _index = 0;
+        return;
+      }
+      receivedCommandStack[_index]=ch;
+      break;
+    default:
+      if (_index==8){
+        _status = STATUS_OK;
+      
+      }
+      receivedCommandStack[_index]=ch;
+      break;
+    }
+    _index++;
+  }
+  
 }
 
-float ZE07H2::readH2()
+boolean ZE07H2::available(uint16_t timeout)		//new data was recevied
 {
-    while (_s->available() > 0 && _s->peek() != 0xFF) 
-    {
-        _s->read();
-        delay(1);
-    }
+    if (timeout > 0){
+		uint32_t start = millis();
+		do{
+			boucle();
+			if (_status == STATUS_OK) break;
+		} while (millis() - start < timeout);
+	} else {
+    boucle();
+	}
+	if ((receivedCommandStack[MAXLENGTH-1]==checkSum(receivedCommandStack,MAXLENGTH)) && (_status = STATUS_OK)){
+		receivedFlag = 1;			//new data received
+		return receivedFlag;
+	} else {
+		receivedFlag = 0;			//data loss or error
+		return receivedFlag;
+	}
+}
 
-    _s->readBytes(response, 9);
-
-    if (response[0] != 0xFF && (response[1] != 0x86 || response[1] != 0x04))
-    {
-        return -1;
-    }
-
-    byte checksum = 0;
-    for (int i = 1; i < 8; i++) 
-    {
-        checksum += response[i];
-    }
-    checksum = 0xFF - checksum;
-    checksum++;
-
-    if (response[8] != checksum) 
-    {
-        return -2;
-    }
-
-    int low  = (int)response[4];
-    int high = (int)response[5];
-    float ppm = (high * 256 + low) * 0.1;
+float ZE07H2::uartReadPPM()
+{
+    receivedFlag = 0;
+    float ppm = (unsigned int)receivedCommandStack[4]<<8 | receivedCommandStack[5];		// bit 4: ppm high 8-bit; bit 5: ppm low 8-bit
+    ppm = ppm / 10.0;
     return ppm;
+}
+ 
+float ZE07H2::dacReadPPM()
+{
+   float analogVoltage = analogRead(_sensorPin) / 1024.0 * _ref;
+   float ppm = (3.125 * analogVoltage - 1.25) * 100;	//linear relationship(0.4V for 0 ppm and 2V for 500ppm)
+   if(ppm<0)
+	   ppm=0;
+   else if(ppm>500)
+	   ppm = 500;
+   return ppm;
 }
