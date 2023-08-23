@@ -121,11 +121,6 @@ float Nose::getOutput()
             _buffer += log10(400);
             _buffer_final = pow(10, _buffer);
             _ppm[i] = _buffer_final;
-            for(int i = 0; i < _sizearr; i++)
-            {
-                ppmavg += _ppm[i];
-            }
-            return ppmavg;
         } else {
             _RS_gas = ((5.0*_RL)/_volts[i])-_RL; //Get value of RS in a gas
             _ratio = _RS_gas/_R0;  // Get ratio RS_gas/RS_air
@@ -134,14 +129,16 @@ float Nose::getOutput()
             if (_isPPB){
                 _ppb = _ppm[i]*1000;
             }
-            float ppmavg = 0.0;
-            for(int i = 0; i < _sizearr; i++)
-            {
-                ppmavg += _ppm[i];
-            }
-            return ppmavg;
         }
     }
+    
+    float ppmsum = 0.0;
+    for(int i = 0; i < _sizearr; i++)
+    {
+        ppmsum += _ppm[i];
+    }
+    ppmavg = (ppmsum / _sizearr);
+    return ppmavg;
 }
 
 void Nose::setPPM(float x, int i)
