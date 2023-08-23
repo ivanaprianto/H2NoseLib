@@ -1,5 +1,5 @@
 /*
-    library for the h2nose project
+    library for the H2Nose project
 */
 #include "Arduino.h"
 #include "Nose.h"
@@ -15,7 +15,7 @@ Nose::Nose(int pins[], bool isPPB, float b, float m, float ratioInCleanAir, bool
     _gasType = gasType; //H2, CH4, C3H8, etc.
     _RL = rl; //load resistance
     _com = comm; //separate print with comma
-    _sizearr = sizeof(_pins) / sizeof(int); 
+    _sizearr = sizeof(_pins) / sizeof(int); //count how many sensors are provided
 }
 
 Thermocouple::Thermocouple(int8_t SCLK, int8_t CS, int8_t MISO)
@@ -59,7 +59,7 @@ void Nose::setB(float x)
 
 void Nose::setM(float x)
 {
-    _m = x;
+    _m = x
 }
 
 float Nose::getRL()
@@ -131,7 +131,6 @@ float Nose::getOutput()
             }
         }
     }
-    
     float ppmsum = 0.0;
     for(int i = 0; i < _sizearr; i++)
     {
@@ -139,6 +138,14 @@ float Nose::getOutput()
     }
     ppmavg = (ppmsum / _sizearr);
     return ppmavg;
+}
+
+float Nose::returnOutputArray(int *outputarr[])
+{
+    for (int i = 0; i < _sizearr; i++)
+    {
+        outputarr[i] = _ppm[i];
+    }
 }
 
 void Nose::setPPM(float x, int i)
@@ -161,11 +168,6 @@ void Nose::printOutput()
             }
         }
     }
-}
-
-void Nose::printOutputInd()
-{
-    for()
 }
 
 float Nose::calculateRLoffset(float targetRL, float targetPPM, int i) //does nothing, will make it useful later
