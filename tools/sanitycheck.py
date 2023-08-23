@@ -128,13 +128,13 @@ if r == "RL":
     r0 = float(input("R0 : "))
     calculateRL(ppm, readout, m, b, r0)
 
-if r == "DESCENT":
+elif r == "DESCENT":
     o = float(input("O : "))
     h = float(input("H : "))
     lr = float(input("LR : "))
     calc(o, h, lr)
 
-if r == "MB":
+elif r == "MB":
     g = input("3/2 DATA : ")
     if g == "3":
         readout1 = float(input("10BIT DATA 1 : "))
