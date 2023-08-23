@@ -4,10 +4,9 @@
 #include "Arduino.h"
 #include "Nose.h"
 
-Nose::Nose(int pin1, int pin2, bool isPPB, float b, float m, float ratioInCleanAir, bool isMG811, String gasType, float rl, bool comm)
+Nose::Nose(int pins[], bool isPPB, float b, float m, float ratioInCleanAir, bool isMG811, String gasType, float rl, bool comm)
 {
-    _pin1 = pin1; //1st sensor
-    _pin2 = pin2; //2nd sensor
+    _pins[] = pins[]; //Sensor pins
     _isPPB = isPPB; //for MQ3
     _b = b; //V400 in MG811
     _m = m; //V4000 in MG811
@@ -16,6 +15,7 @@ Nose::Nose(int pin1, int pin2, bool isPPB, float b, float m, float ratioInCleanA
     _gasType = gasType; //H2, CH4, C3H8, etc.
     _RL = rl; //load resistance
     _com = comm; //separate print with comma
+    _sizearr = sizeof(_pins) / sizeof(int); 
 }
 
 Thermocouple::Thermocouple(int8_t SCLK, int8_t CS, int8_t MISO)
@@ -108,9 +108,30 @@ float Nose::getOutput()
     }
 }
 
-void Nose::setPPM(float x)
+float Nose::getOutput()
 {
-    _ppm = x;
+    _volts = getVoltage();
+    for(int i = 0; i<_sizearr; i++)
+    {
+        _RS_gas = ((5.0*_RL)/_volts[i])-_RL; //Get value of RS in a gas
+        _ratio = _RS_gas/_R0;  // Get ratio RS_gas/RS_air
+        _ppm_log = (log10(_ratio)-_b)/_m; //Get ppm value in linear scale according to the the ratio value  
+        _ppm[i] = pow(10, _ppm_log); //Convert ppm value to log scale 
+        if (_isPPB){
+            _ppb = _ppm[i]*1000;
+        }
+    }
+    float ppmavg = 0.0;
+    for(int i = 0; i < _sizearr; i++)
+    {
+        ppmavg += _ppm[i];
+    }
+    return ppmavg;
+}
+
+void Nose::setPPM(float x, int i)
+{
+    _ppm[i] = x;
 }
 
 void Nose::printOutput()
@@ -130,7 +151,12 @@ void Nose::printOutput()
     }
 }
 
-float Nose::calculateRLoffset(float targetRL, float targetPPM) //does nothing, will make it useful later
+void Nose::printOutputInd()
+{
+    for()
+}
+
+float Nose::calculateRLoffset(float targetRL, float targetPPM, int i) //does nothing, will make it useful later
 {
     _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors
 
@@ -145,7 +171,7 @@ float Nose::calculateRLoffset(float targetRL, float targetPPM) //does nothing, w
     return _readout - targetReadout;
 }
 
-float Nose::calculateCurrentRL(float targetPPM){
+float Nose::calculateCurrentRL(float targetPPM, int i){
     _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors
     _volt = _readout*(5.0/1023); //Convert to voltage
 
@@ -159,7 +185,7 @@ float Nose::calculateCurrentRL(float targetPPM){
     return realRL;
 }
 
-float Nose::calculateIntersect(float m, float targetPPM){
+float Nose::calculateIntersect(float m, float targetPPM, int i){
     _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors
     _volt = _readout*(5.0/1023); //Convert to voltage
     _RS_gas = ((5.0*_RL)/_volt)-_RL; //Get value of RS in a gas
@@ -170,7 +196,7 @@ float Nose::calculateIntersect(float m, float targetPPM){
     return b;
 }
 
-float Nose::calculateGradient(float b, float targetPPM){
+float Nose::calculateGradient(float b, float targetPPM, int i){
     _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors
     _volt = _readout*(5.0/1023); //Convert to voltage
     _RS_gas = ((5.0*_RL)/_volt)-_RL; //Get value of RS in a gas

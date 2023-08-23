@@ -22,12 +22,14 @@ class Nose
 
         //get main data
         float getOutput();
+        float getOutputind();
 
         //other data
         float getRL();
         float getB();
         float getM();
         float getVoltage();
+        float getVoltageInd();
 
         //tools
         float calculateRLoffset(float targetRL, float targetPPM);
@@ -38,8 +40,7 @@ class Nose
         float calibrate();
 
     private:
-        int _pin1;
-        int _pin2;
+        int _pins[];
         bool _isPPB;
         float _b;
         float _m;
@@ -57,8 +58,12 @@ class Nose
         float _ppb;
         float _RL;
         bool _com;
+        float _readouts[];
+        float _volts[];
+        float _ppms[];
         float f(float x, float o);
         float d(float x, float h, float o);
+        int _sizearr;
 };
 
 class Thermocouple
