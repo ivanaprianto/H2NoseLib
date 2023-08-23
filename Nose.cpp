@@ -113,20 +113,30 @@ float Nose::getOutput()
     _volts = getVoltage();
     for(int i = 0; i<_sizearr; i++)
     {
-        _RS_gas = ((5.0*_RL)/_volts[i])-_RL; //Get value of RS in a gas
-        _ratio = _RS_gas/_R0;  // Get ratio RS_gas/RS_air
-        _ppm_log = (log10(_ratio)-_b)/_m; //Get ppm value in linear scale according to the the ratio value  
-        _ppm[i] = pow(10, _ppm_log); //Convert ppm value to log scale 
-        if (_isPPB){
-            _ppb = _ppm[i]*1000;
+        if(_isMG811)
+        {
+            _buffer = 0;
+            _buffer = (_b - _m)/(log10(400) - log10(40000)); // Delta V
+            _buffer = (_volt - _b)/_buffer; 
+            _buffer += log10(400);
+            _buffer_final = pow(10, _buffer);
+            return _buffer_final; //return in ppm
+        } else {
+            _RS_gas = ((5.0*_RL)/_volts[i])-_RL; //Get value of RS in a gas
+            _ratio = _RS_gas/_R0;  // Get ratio RS_gas/RS_air
+            _ppm_log = (log10(_ratio)-_b)/_m; //Get ppm value in linear scale according to the the ratio value  
+            _ppm[i] = pow(10, _ppm_log); //Convert ppm value to log scale 
+            if (_isPPB){
+                _ppb = _ppm[i]*1000;
+            }
+            float ppmavg = 0.0;
+            for(int i = 0; i < _sizearr; i++)
+            {
+                ppmavg += _ppm[i];
+            }
+            return ppmavg;
         }
     }
-    float ppmavg = 0.0;
-    for(int i = 0; i < _sizearr; i++)
-    {
-        ppmavg += _ppm[i];
-    }
-    return ppmavg;
 }
 
 void Nose::setPPM(float x, int i)
