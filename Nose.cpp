@@ -4,6 +4,14 @@
 #include "Arduino.h"
 #include "Nose.h"
 
+#define DHTLIB_DHT_WAKEUP 1
+#define DHTLIB_DHT_LEADING_ZEROS 6
+#ifndef F_CPU
+#define DHTLIB_TIMEOUT 1000  // should be approx. clock/40000
+#else
+#define DHTLIB_TIMEOUT (F_CPU/40000)
+#endif
+
 Nose::Nose(int pin1, int pin2, bool isPPB, float b, float m, float ratioInCleanAir, bool isMG811, String gasType, float rl, bool comm)
 {
     _pin1 = pin1; //1st sensor
@@ -16,20 +24,6 @@ Nose::Nose(int pin1, int pin2, bool isPPB, float b, float m, float ratioInCleanA
     _gasType = gasType; //H2, CH4, C3H8, etc.
     _RL = rl; //load resistance
     _com = comm; //separate print with comma
-}
-
-Thermocouple::Thermocouple(int8_t SCLK, int8_t CS, int8_t MISO)
-{
-    _sclk = SCLK;
-    _cs = CS;
-    _miso = MISO;
-
-    // define pin modes
-    pinMode(_cs, OUTPUT);
-    pinMode(_sclk, OUTPUT);
-    pinMode(_miso, INPUT);
-
-    digitalWrite(_cs, HIGH);
 }
 
 void Nose::setRatioInCleanAir(float x)
@@ -208,6 +202,20 @@ float Nose::calibrate()
     return R0;
 }
 
+Thermocouple::Thermocouple(int8_t SCLK, int8_t CS, int8_t MISO)
+{
+    _sclk = SCLK;
+    _cs = CS;
+    _miso = MISO;
+
+    // define pin modes
+    pinMode(_cs, OUTPUT);
+    pinMode(_sclk, OUTPUT);
+    pinMode(_miso, INPUT);
+
+    digitalWrite(_cs, HIGH);
+}
+
 float Thermocouple::readTemps(void)
 {
     uint16_t v;
@@ -351,4 +359,156 @@ float ZE07H2::dacReadPPM()
    else if(ppm>500)
 	   ppm = 500;
    return ppm;
+}
+
+DHT22::DHT22(uint8_t pin, bool disableIRQ)
+{
+    _pin = pin;
+    _disableIRQ = disableIRQ;
+}
+
+int8_t DHT22::read()
+{
+    // READ VALUES
+    if (_disableIRQ) noInterrupts();
+    int8_t result = _readSensor(_pin, DHTLIB_DHT_WAKEUP, DHTLIB_DHT_LEADING_ZEROS);
+    if (_disableIRQ) interrupts();
+
+    // these bits are always zero, masking them reduces errors.
+    bits[0] &= 0x03;
+    bits[2] &= 0x83;
+
+    // CONVERT AND STORE
+    humidity  = (bits[0] * 256 + bits[1]) * 0.1;
+    int16_t t = ((bits[2] & 0x7F) * 256 + bits[3]);
+    if (t == 0)
+    {
+      temperature = 0.0;     // prevent -0.0;
+    }
+    else
+    {
+      temperature = t * 0.1;
+      if((bits[2] & 0x80) == 0x80 )
+      {
+        temperature = -temperature;
+      }
+    }
+
+    // TEST CHECKSUM
+    uint8_t sum = bits[0] + bits[1] + bits[2] + bits[3];
+    if (bits[4] != sum)
+    {
+        return DHTLIB_ERROR_CHECKSUM;
+    }
+    return result;
+}
+
+int8_t DHT22::_readSensor(uint8_t pin, uint8_t wakeupDelay, uint8_t leadingZeroBits)
+{
+    // INIT BUFFERVAR TO RECEIVE DATA
+    uint8_t mask = 128;
+    uint8_t idx = 0;
+
+    uint8_t data = 0;
+    uint8_t state = LOW;
+    uint8_t pstate = LOW;
+    uint16_t zeroLoop = DHTLIB_TIMEOUT;
+    uint16_t delta = 0;
+
+    leadingZeroBits = 40 - leadingZeroBits; // reverse counting...
+
+    // replace digitalRead() with Direct Port Reads.
+    // reduces footprint ~100 bytes => portability issue?
+    // direct port read is about 3x faster
+    uint8_t bit = digitalPinToBitMask(pin);
+    uint8_t port = digitalPinToPort(pin);
+    volatile uint8_t *PIR = portInputRegister(port);
+
+    // REQUEST SAMPLE
+    pinMode(pin, OUTPUT);
+    digitalWrite(pin, LOW); // T-be
+    if (wakeupDelay > 8) delay(wakeupDelay);
+    else delayMicroseconds(wakeupDelay * 1000UL);
+    digitalWrite(pin, HIGH); // T-go
+    pinMode(pin, INPUT);
+
+    uint16_t loopCount = DHTLIB_TIMEOUT * 2;  // 200uSec max
+    // while(digitalRead(pin) == HIGH)
+    while ((*PIR & bit) != LOW )
+    {
+        if (--loopCount == 0) 
+        {
+          return DHTLIB_ERROR_CONNECT;
+        }
+    }
+
+    // GET ACKNOWLEDGE or TIMEOUT
+    loopCount = DHTLIB_TIMEOUT;
+    // while(digitalRead(pin) == LOW)
+    while ((*PIR & bit) == LOW )  // T-rel
+    {
+        if (--loopCount == 0) 
+        {
+          return DHTLIB_ERROR_ACK_L;
+        }
+    }
+
+    loopCount = DHTLIB_TIMEOUT;
+    // while(digitalRead(pin) == HIGH)
+    while ((*PIR & bit) != LOW )  // T-reh
+    {
+        if (--loopCount == 0)
+        {
+          return DHTLIB_ERROR_ACK_H;
+        }
+    }
+
+    loopCount = DHTLIB_TIMEOUT;
+
+    // READ THE OUTPUT - 40 BITS => 5 BYTES
+    for (uint8_t i = 40; i != 0; )
+    {
+        // WAIT FOR FALLING EDGE
+        state = (*PIR & bit);
+        if (state == LOW && pstate != LOW)
+        {
+            if (i > leadingZeroBits) // DHT22 first 6 bits are all zero !!   DHT11 only 1
+            {
+                zeroLoop = min(zeroLoop, loopCount);
+                delta = (DHTLIB_TIMEOUT - zeroLoop)/4;
+            }
+            else if ( loopCount <= (zeroLoop - delta) ) // long -> one
+            {
+                data |= mask;
+            }
+            mask >>= 1;
+            if (mask == 0)   // next byte
+            {
+                mask = 128;
+                bits[idx] = data;
+                idx++;
+                data = 0;
+            }
+            // next bit
+            --i;
+
+            // reset timeout flag
+            loopCount = DHTLIB_TIMEOUT;
+        }
+        pstate = state;
+        // Check timeout
+        if (--loopCount == 0)
+        {
+          return DHTLIB_ERROR_TIMEOUT;
+        }
+
+    }
+    // pinMode(pin, OUTPUT);
+    // digitalWrite(pin, HIGH);
+    return DHTLIB_OK;
+}
+
+void DHT22::printOutput()
+{
+    Serial.print(",\"DHT22_H\":"+String(humidity)+",\"DHT22_T\":"+String(temperature));
 }

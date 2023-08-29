@@ -3,6 +3,13 @@
 
 #define MAXLENGTH 9
 
+#define DHTLIB_OK                       0
+#define DHTLIB_ERROR_CHECKSUM           -1
+#define DHTLIB_ERROR_TIMEOUT            -2
+#define DHTLIB_ERROR_CONNECT            -3
+#define DHTLIB_ERROR_ACK_L              -4
+#define DHTLIB_ERROR_ACK_H              -5
+
 #include <Arduino.h>
 
 class Nose
@@ -93,6 +100,22 @@ class ZE07H2
         STAT_ZE07 _status;
         uint8_t _index = 0;
         float _ref;
+};
+
+class DHT22
+{
+    public:
+        DHT22(uint8_t pin, bool disableIRQ = false);
+        void printOutput();
+        int8_t read();
+        float humidity;
+        float temperature;
+
+    private:
+        uint8_t bits[5];
+        int8_t _readSensor(uint8_t pin, uint8_t wakeupDelay, uint8_t leadingZeroBits);
+        bool   _disableIRQ;
+        int    _pin;
 };
 
 #endif
