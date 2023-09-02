@@ -36,6 +36,12 @@ void Nose::setPin1(int x)
     _pin1 = x;
 }
 
+void Nose::setRL(float x[2])
+{
+    _RL1 = x[0];
+    _RL2 = x[1];
+}
+
 void Nose::setPin2(int x)
 {
     _pin2 = x;
@@ -73,33 +79,64 @@ float Nose::getM()
 
 float Nose::getVoltage()
 {
-    _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2;
-    _volt = (_readout * (5.0/1023.0));
+    _readout1 = analogRead(_pin1);
+    _volt1 = (_readout1 * (5.0/1023.0));
+    _readout2 = analogRead(_pin2);
+    _volt2 = (_readout2 * (5.0/1023.0));
+    _volt = (_readout1 + _readout2) / 2;
     return _volt;
 }
 
-float Nose::getOutput()
+float Nose::getOutput(bool inject, float volt, float rl)
 {
     _volt = getVoltage();
-    if(_isMG811){
-        _buffer = 0;
-        _buffer = (_b - _m)/(log10(400) - log10(40000)); // Delta V
-        _buffer = (_volt - _b)/_buffer; 
-        _buffer += log10(400);
-        _buffer_final = pow(10, _buffer);
-        return _buffer_final; //return in ppm
-    } else {
-        _RS_gas = ((5.0*_RL)/_volt)-_RL; //Get value of RS in a gas
-        _ratio = _RS_gas/_R0;  // Get ratio RS_gas/RS_air
-        _ppm_log = (log10(_ratio)-_b)/_m; //Get ppm value in linear scale according to the the ratio value  
-        _ppm = pow(10, _ppm_log); //Convert ppm value to log scale 
-        if (_isPPB){
-            _ppb = _ppm*1000;
-            return _ppb; //return conversion value (parts per billion)
+    if (!inject){
+        if(_isMG811){
+            _buffer = 0;
+            _buffer = (_b - _m)/(log10(400) - log10(40000)); // Delta V
+            _buffer = (_volt - _b)/_buffer; 
+            _buffer += log10(400);
+            _buffer_final = pow(10, _buffer);
+            return _buffer_final; //return in ppm
         } else {
-            return _ppm; //return conversion value (in parts per million)
+            _RS_gas = ((5.0*_RL)/_volt)-_RL; //Get value of RS in a gas
+            _ratio = _RS_gas/_R0;  // Get ratio RS_gas/RS_air
+            _ppm_log = (log10(_ratio)-_b)/_m; //Get ppm value in linear scale according to the the ratio value  
+            _ppm = pow(10, _ppm_log); //Convert ppm value to log scale 
+            if (_isPPB){
+                _ppb = _ppm*1000;
+                return _ppb; //return conversion value (parts per billion)
+            } else {
+                return _ppm; //return conversion value (in parts per million)
+            }
+        }
+    } else {
+        if(_isMG811){
+            _buffer = 0;
+            _buffer = (_b - _m)/(log10(400) - log10(40000)); // Delta V
+            _buffer = (volt - _b)/_buffer; 
+            _buffer += log10(400);
+            _buffer_final = pow(10, _buffer);
+            return _buffer_final; //return in ppm
+        } else {
+            _RS_gas = ((5.0*rl)/volt)-rl; //Get value of RS in a gas
+            _ratio = _RS_gas/_R0;  // Get ratio RS_gas/RS_air
+            _ppm_log = (log10(_ratio)-_b)/_m; //Get ppm value in linear scale according to the the ratio value  
+            _ppm = pow(10, _ppm_log); //Convert ppm value to log scale 
+            if (_isPPB){
+                _ppb = _ppm*1000;
+                return _ppb; //return conversion value (parts per billion)
+            } else {
+                return _ppm; //return conversion value (in parts per million)
+            }
         }
     }
+}
+
+void Nose::setPPM(float x, float y)
+{
+    _ppm1 = x;
+    _ppm2 = y;
 }
 
 void Nose::setPPM(float x)
@@ -122,6 +159,31 @@ void Nose::printOutput()
             }
         }
     }
+}
+
+void Nose::printOutputBoth()
+{
+    _ppm1 = getOutput(true, _volt1, _RL1);
+    _ppm2 = getOutput(true, _volt2, _RL2);
+    if(_isMG811){
+        Serial.print(",\""+_gasType+"_1"+"\""+":"+_ppm1+",\""+_gasType+"_2"+"\""+":"+_ppm2);
+    } else {
+        if (_isPPB){
+            Serial.print(",\""+_gasType+"_1"+"\""+":"+_ppm1+",\""+_gasType+"_2"+"\""+":"+_ppm2);
+        } else {
+            if (_com){
+                Serial.print(",\""+_gasType+"_1"+"\""+":"+_ppm1+",\""+_gasType+"_2"+"\""+":"+_ppm2); 
+            } else {
+                Serial.print("\""+_gasType+"_1"+"\""+":"+_ppm1+",\""+_gasType+"_2"+"\""+":"+_ppm2);   
+            }
+        }
+    }
+}
+
+void Nose::returnToArray(float outs[2])
+{
+    outs[0] = getOutput(true, _volt1, _RL1);
+    outs[1] = getOutput(true, _volt2, _RL2);
 }
 
 float Nose::calculateRLoffset(float targetRL, float targetPPM) //does nothing, will make it useful later
@@ -202,11 +264,12 @@ float Nose::calibrate()
     return R0;
 }
 
-Thermocouple::Thermocouple(int8_t SCLK, int8_t CS, int8_t MISO)
+Thermocouple::Thermocouple(int8_t SCLK, int8_t CS, int8_t MISO, String identifier)
 {
     _sclk = SCLK;
     _cs = CS;
     _miso = MISO;
+    _identifier = identifier;
 
     // define pin modes
     pinMode(_cs, OUTPUT);
@@ -254,6 +317,12 @@ byte Thermocouple::spiRead(void)
     return d;
 }
 
+void Thermocouple::printTemps()
+{
+    float t = readTemps();
+    Serial.print(",\"Thermocouple_"+_identifier+"\":"+t);
+}
+
 ZE07H2::ZE07H2(HardwareSerial *Serial)	//read the uart signal by hardware uart,such as D0
 {
     mySerial = Serial;
@@ -266,7 +335,7 @@ ZE07H2::ZE07H2(HardwareSerial *Serial)	//read the uart signal by hardware uart,s
 //     receivedFlag = 0;
 // }
 
-ZE07H2:: ZE07H2(int pin,float ref)//read the analog signal by analog input pin ,such as A2; ref:voltage on AREF pin
+ZE07H2::ZE07H2(int pin,float ref)//read the analog signal by analog input pin ,such as A2; ref:voltage on AREF pin
 {
     _sensorPin = pin;
     _ref = ref;											//for arduino uno ,the ref should be 5.0V(Typical)
@@ -346,7 +415,6 @@ float ZE07H2::uartReadPPM()
 {
     receivedFlag = 0;
     float ppm = (unsigned int)receivedCommandStack[4]<<8 | receivedCommandStack[5];		// bit 4: ppm high 8-bit; bit 5: ppm low 8-bit
-    ppm = ppm / 10.0;
     return ppm;
 }
  
@@ -510,5 +578,6 @@ int8_t DHT22::_readSensor(uint8_t pin, uint8_t wakeupDelay, uint8_t leadingZeroB
 
 void DHT22::printOutput()
 {
+    read();
     Serial.print(",\"DHT22_H\":"+String(humidity)+",\"DHT22_T\":"+String(temperature));
 }

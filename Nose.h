@@ -19,16 +19,20 @@ class Nose
 
         //general functions
         void printOutput();
+        void printOutputBoth();
         void setRatioInCleanAir(float x);
         void setPin1(int x);
         void setPin2(int x);
         void setRL(float x);
+        void setRL(float x[2]);
         void setB(float x);
         void setM(float x);
+        void setPPM(float x, float y);
         void setPPM(float x);
+        void returnToArray(float outs[2]);
 
         //get main data
-        float getOutput();
+        float getOutput(bool inject = false, float volt = 0.0, float rl = 0.0);
 
         //other data
         float getRL();
@@ -54,15 +58,23 @@ class Nose
         bool _isMG811;
         String _gasType;
         float _readout;
+        float _readout1;
+        float _readout2;
         float _buffer;
         float _buffer_final;
         float _volt;
+        float _volt1;
+        float _volt2;
         float _RS_gas;
         float _ratio;
         float _ppm_log;
         float _ppm;
+        float _ppm1;
+        float _ppm2;
         float _ppb;
         float _RL;
+        float _RL1;
+        float _RL2;
         bool _com;
         float f(float x, float o);
         float d(float x, float h, float o);
@@ -71,11 +83,13 @@ class Nose
 class Thermocouple
 {
     public:
-        Thermocouple(int8_t SCLK, int8_t CS, int8_t MISO);
+        Thermocouple(int8_t SCLK, int8_t CS, int8_t MISO, String identifier);
+        void printTemps();
         float readTemps(void);
 
     private:
         int8_t _sclk, _cs, _miso;
+        String _identifier;
         uint8_t spiRead(void);
 };
 
