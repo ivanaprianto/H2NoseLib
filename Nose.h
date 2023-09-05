@@ -15,7 +15,7 @@
 class Nose
 {
     public:
-        Nose(int pin1, int pin2, bool isPPB, float b, float m, float ratioInCleanAir, bool isMG811, String gasType, float rl, bool comm);
+        Nose(int pin1, int pin2, bool isPPB, float b, float m, float ratioInCleanAir, bool isMG811, String gasType, float rl, bool comm = false);
 
         //general functions
         void printOutput();

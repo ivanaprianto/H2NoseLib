@@ -23,6 +23,8 @@ Nose::Nose(int pin1, int pin2, bool isPPB, float b, float m, float ratioInCleanA
     _isMG811 = isMG811; //for MG811
     _gasType = gasType; //H2, CH4, C3H8, etc.
     _RL = rl; //load resistance
+    _RL1 = rl;
+    _RL2 = rl;
     _com = comm; //separate print with comma
 }
 
@@ -40,6 +42,7 @@ void Nose::setRL(float x[2])
 {
     _RL1 = x[0];
     _RL2 = x[1];
+    _RL = (_RL1 + _RL2)/2;
 }
 
 void Nose::setPin2(int x)
@@ -171,7 +174,7 @@ void Nose::printOutputBoth()
         if (_isPPB){
             Serial.print(",\""+_gasType+"_1"+"\""+":"+_ppm1+",\""+_gasType+"_2"+"\""+":"+_ppm2);
         } else {
-            if (_com){
+            if (!_com){
                 Serial.print(",\""+_gasType+"_1"+"\""+":"+_ppm1+",\""+_gasType+"_2"+"\""+":"+_ppm2); 
             } else {
                 Serial.print("\""+_gasType+"_1"+"\""+":"+_ppm1+",\""+_gasType+"_2"+"\""+":"+_ppm2);   
