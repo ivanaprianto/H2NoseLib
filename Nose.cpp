@@ -12,7 +12,7 @@
 #define DHTLIB_TIMEOUT (F_CPU/40000)
 #endif
 
-Nose::Nose(int pin1, int pin2, bool isPPB, float b, float m, float ratioInCleanAir, bool isMG811, String gasType, float rl, bool comm) 
+Nose::Nose(int pin1, int pin2, bool isPPB, float b, float m, float ratioInCleanAir, bool isMG811, String gasType, float rl, bool comm) //standard mode
 { 
     _pin1 = pin1; //1st sensor 
     _pin2 = pin2; //2nd sensor 
@@ -23,35 +23,31 @@ Nose::Nose(int pin1, int pin2, bool isPPB, float b, float m, float ratioInCleanA
     _isMG811 = isMG811; //sets sensor mode
     _gasType = gasType; //H2, CH4, C3H8, etc. 
     _RL = rl; //load resistance 
-    _RL1 = rl; 
-    _RL2 = rl; 
+    _RL1 = rl; //individual resistances
+    _RL2 = rl; //individual resistances
     _com = comm; //separate print with comma 
 }
 
-Nose::Nose(int pin[2], float v[2])
+Nose::Nose(int pin[2], float v[2]) //MG811 mode
 {
-    _pin1 = pin[0]; 
-    _pin2 = pin[1]; 
-    _RL = 9876;
-    _RL1 = 4;
-    _RL2 = 45;
-    _b = v[0];
-    _m = v[1];
-    _R0 = 456;
-    _isMG811 = true;
-    _gasType = "MG811_CO2";
+    _pin1 = pin[0]; //declare pins
+    _pin2 = pin[1]; //declate pins
+    _b = v[0]; //V400
+    _m = v[1]; //V4000
+    _isMG811 = true; //set mode to MG811 mode
+    _gasType = "MG811_CO2"; //identifier
 }
 
-Nose::Nose(int pin[2], float rl[2], int gastype, bool comm) 
+Nose::Nose(int pin[2], float rl[2], int gastype, bool comm) //simple mode
 { 
-    _pin1 = pin[0]; 
-    _pin2 = pin[1]; 
-    _RL1 = rl[0]; 
-    _RL2 = rl[1]; 
-    _RL = (_RL1 + _RL2)/2; 
-    _isPPB = false; 
-    _isMG811 = false; 
-    switch (gastype) 
+    _pin1 = pin[0]; //declare pins
+    _pin2 = pin[1]; //declare pins
+    _RL1 = rl[0]; //declare resistance for sensor 1
+    _RL2 = rl[1]; //declare resistance for sensor 2
+    _RL = (_RL1 + _RL2)/2; //avg resistance for the avg ppm calculation
+    _isPPB = false; //for later
+    _isMG811 = false; //set mode to MQ mode
+    switch (gastype) //switch between the different sensors
     { 
     case 0: 
         _m = m2_h2; 
@@ -147,7 +143,7 @@ Nose::Nose(int pin[2], float rl[2], int gastype, bool comm)
     default: 
         break; 
     } 
-    _com = comm; 
+    _com = comm; //add comma in front of the printout or no
 } 
 
 void Nose::setRatioInCleanAir(float x)
@@ -350,35 +346,6 @@ float Nose::calculateIntersect(float m, float targetPPM){
     float targetPPM_log = log10(targetPPM); 
     float b = log10(_ratio) - (m*targetPPM_log);
     return b;
-}
-
-float Nose::calculateGradient(float b, float targetPPM){
-    _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors
-    _volt = _readout*(5.0/1023); //Convert to voltage
-    _RS_gas = ((5.0*_RL)/_volt)-_RL; //Get value of RS in a gas
-    _ratio = _RS_gas/_R0;  // Get ratio RS_gas/RS_air
-
-    float targetPPM_log = log10(targetPPM); 
-    float m = (log10(_ratio) - b)/targetPPM_log;
-    return m;
-}
-
-float Nose::gradientDescent(float o, float h, float lr, float c){
-    if(c != o){
-        c -= (d(c, h, o)*lr);
-    } else {
-        c = c;
-    }
-}
-
-float Nose::f(float x, float o)
-{
-    return abs(pow(2, (o - x)));
-}
-
-float Nose::d(float x, float h, float o)
-{
-    return round((f(x + h, o)-f(x, o))/h);
 }
 
 float Nose::calibrate()
