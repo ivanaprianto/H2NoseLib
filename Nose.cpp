@@ -12,129 +12,20 @@
 #define DHTLIB_TIMEOUT (F_CPU/40000)
 #endif
 
-Nose::Nose(int pin1, int pin2, bool isPPB, float b, float m, float ratioInCleanAir, String isMG811, String gasType, float rl, bool comm)
-{
-    _pin1 = pin1; //1st sensor
-    _pin2 = pin2; //2nd sensor
-    _isPPB = isPPB; //for MQ3
-    _b = b; //V400 in MG811
-    _m = m; //V4000 in MG811
-    _R0 = ratioInCleanAir; //Clean air to R0 ratio
-    if(isMG811 = "MG"){
-        _isMG811 = true;
-    } else {
-        _isMG811 = false; //for MG811
-    }
-    _gasType = gasType; //H2, CH4, C3H8, etc.
-    _RL = rl; //load resistance
-    _RL1 = rl;
-    _RL2 = rl;
-    _com = comm; //separate print with comma
-}
-
-Nose::Nose(int pin[2], float rl[2], int gastype, bool comm)
-{
-    _pin1 = pin[0];
-    _pin2 = pin[1];
-    _RL1 = rl[0];
-    _RL2 = rl[1];
-    _RL = (_RL1 + _RL2)/2;
-    _isPPB = false;
-    _isMG811 = false;
-    switch (gastype)
-    {
-    case 0:
-        _m = m2_h2;
-        _b = b2_h2;
-        _R0 = rsr02;
-        _gasType = "MQ2_H2";
-        break;
-    case 1:
-        _m = m4_h2;
-        _b = b4_h2;
-        _R0 = rsr04;
-        _gasType = "MQ4_H2";
-    case 2:
-        _m = m6_h2;
-        _b = b6_h2;
-        _R0 = rsr06;
-        _gasType = "MQ6_H2";
-        break;
-    case 3:
-        _m = m7_h2;
-        _b = b7_h2;
-        _R0 = rsr08;
-        _gasType = "MQ7_H2";
-        break;
-    case 4:
-        _m = m8_h2;
-        _b = b8_h2;
-        _R0 = rsr08;
-        _gasType = "MQ8_H2";
-        break;
-    case 5:
-        _m = m2_co;
-        _b = b2_co;
-        _R0 = rsr02;
-        _gasType = "MQ2_CO";
-        break;    
-    case 6:
-        _m = m7_co;
-        _b = b7_co;
-        _R0 = rsr07;
-        _gasType = "MQ7_CO";
-        break;    
-    case 7:
-        _m = m2_ch4;
-        _b = b2_ch4;
-        _R0 = rsr02;
-        _gasType = "MQ2_CH4";
-        break;    
-    case 8:
-        _m = m4_ch4;
-        _b = b4_ch4;
-        _R0 = rsr04;
-        _gasType = "MQ4_CH4";
-        break;
-    case 9:
-        _m = m9_ch4;
-        _b = b9_ch4;
-        _R0 = rsr09;
-        _gasType = "MQ9_CH4";
-        break;
-    case 10:
-        _m = m3_benzene;
-        _b = b3_benzene;
-        _R0 = rsr03;
-        _gasType = "MQ3_C6H6";
-        break;
-    case 11:
-        _m = m2_propane;
-        _b = b2_propane;
-        _R0 = rsr02;
-        _gasType = "MQ2_C3H8";
-        break;
-    case 12:
-        _m = m3_alcohol;
-        _b = b3_alcohol;
-        _R0 = rsr03;
-        _gasType = "MQ3_OH";
-        break;
-    case 13:
-        _m = m2_lpg;
-        _b = b2_lpg;
-        _R0 = rsr02;
-        _gasType = "MQ2_LPG";
-        break;
-    case 14:
-        _b = _RL1;
-        _m = _RL2;
-        _R0 = 0;
-        _gasType = "MG811_CO2";
-    default:
-        break;
-    }
-    _com = comm;
+Nose::Nose(int pin1, int pin2, bool isPPB, float b, float m, float ratioInCleanAir, bool isMG811, String gasType, float rl, bool comm) 
+{ 
+    _pin1 = pin1; //1st sensor 
+    _pin2 = pin2; //2nd sensor 
+    _isPPB = isPPB; //for MQ3 
+    _b = b; //V400 in MG811 
+    _m = m; //V4000 in MG811 
+    _R0 = ratioInCleanAir; //Clean air to R0 ratio 
+    _isMG811 = isMG811; //sets sensor mode
+    _gasType = gasType; //H2, CH4, C3H8, etc. 
+    _RL = rl; //load resistance 
+    _RL1 = rl; 
+    _RL2 = rl; 
+    _com = comm; //separate print with comma 
 }
 
 void Nose::setRatioInCleanAir(float x)
@@ -275,6 +166,7 @@ void Nose::printOutput()
 
 void Nose::printOutputBoth()
 {
+    getVoltage();
     _ppm1 = getOutput(true, _volt1, _RL1);
     _ppm2 = getOutput(true, _volt2, _RL2);
     if(_isMG811){
@@ -432,6 +324,9 @@ byte Thermocouple::spiRead(void)
 void Thermocouple::printTemps()
 {
     float t = readTemps();
+    if (t == NAN){
+        t = 31.5;
+    }
     Serial.print(",\"Thermocouple_"+_identifier+"\":"+t);
 }
 
