@@ -183,8 +183,35 @@ void Nose::setM(float x)
     _m = x;
 }
 
+void Nose::setStart(float ppm)
+{
+    _RL1 = 0.0;
+    _RL2 = 0.0;
+    _readout1 = analogRead(_pin1);
+    _volt1 = (_readout1 * (5.0/1023.0));
+    _readout2 = analogRead(_pin2);
+    _volt2 = (_readout2 * (5.0/1023.0));
+    _volt = (_readout1 + _readout2) / 2;
+    
+    float ppm_log = log10(ppm);
+    float rat_log = ppm_log*_m+_b;
+    float ratio = pow(10, rat_log);
+    float rs = ratio*_R0;
+
+    _RL1 = (_volt1 * rs) / (5.0/_volt1);
+    _RL2 = (_volt2 * rs) / (5.0/_volt2);
+    _RL = (_RL1 + _RL2)/2;
+}
+
 float Nose::getRL()
 {
+    return _RL;
+}
+
+float Nose::getRL(float outs[2])
+{
+    outs[0] = _RL1;
+    outs[1] = _RL2;
     return _RL;
 }
 
@@ -204,7 +231,7 @@ float Nose::getVoltage()
     _volt1 = (_readout1 * (5.0/1023.0));
     _readout2 = analogRead(_pin2);
     _volt2 = (_readout2 * (5.0/1023.0));
-    _volt = (_readout1 + _readout2) / 2;
+    _volt = (_volt1 + _volt2) / 2;
     return _volt;
 }
 
@@ -267,6 +294,7 @@ void Nose::setPPM(float x)
 
 void Nose::printOutput()
 {
+    getOutput();
     if(_isMG811){
         Serial.print(",\""+_gasType+"\""+":"+_buffer_final);
     } else {
@@ -282,11 +310,13 @@ void Nose::printOutput()
     }
 }
 
-void Nose::printOutputBoth()
+void Nose::printOutputBoth(bool inject)
 {
     getVoltage();
-    _ppm1 = getOutput(true, _volt1, _RL1);
-    _ppm2 = getOutput(true, _volt2, _RL2);
+    if(!inject){
+        _ppm1 = getOutput(true, _volt1, _RL1);
+        _ppm2 = getOutput(true, _volt2, _RL2);
+    }
     if(_isMG811){
         Serial.print(",\""+_gasType+"_1"+"\""+":"+_ppm1+",\""+_gasType+"_2"+"\""+":"+_ppm2);
     } else {
@@ -348,6 +378,17 @@ float Nose::calculateIntersect(float m, float targetPPM){
     return b;
 }
 
+float Nose::calculateGradient(float b, float targetPPM){ 
+    _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors 
+    _volt = _readout*(5.0/1023); //Convert to voltage 
+    _RS_gas = ((5.0*_RL)/_volt)-_RL; //Get value of RS in a gas 
+    _ratio = _RS_gas/_R0;  // Get ratio RS_gas/RS_air 
+ 
+    float targetPPM_log = log10(targetPPM);  
+    float m = (log10(_ratio) - b)/targetPPM_log; 
+    return m; 
+} 
+
 float Nose::calibrate()
 {
     _readout = (analogRead(_pin1) + analogRead(_pin2)) / 2; //Read analog values of sensors
@@ -355,6 +396,25 @@ float Nose::calibrate()
     float RS_air = ((5.0*_RL)/_volt)-_RL; //Get value of RS in a gas
     float R0 = RS_air/_R0;
     return R0;
+}
+
+void Nose::addUpAll()
+{
+    _total += getOutput();
+    _total1 += getOutput(true, _volt1, _RL1);
+    _total2 += getOutput(true, _volt2, _RL2);
+}
+
+void Nose::averageOut(int dataCount)
+{
+    _total /= dataCount;
+    _total1 /= dataCount;
+    _total2 /= dataCount;
+    setPPM(_total1, _total2);
+    printOutputBoth(true);
+    _total = 0.0;
+    _total1 = 0.0;
+    _total2 = 0.0;
 }
 
 Thermocouple::Thermocouple(int8_t SCLK, int8_t CS, int8_t MISO, String identifier)
@@ -427,12 +487,6 @@ ZE07H2::ZE07H2(HardwareSerial *Serial)	//read the uart signal by hardware uart,s
     mySerial = Serial;
     receivedFlag = 0;
 }
-
-// ZE07H2::ZE07H2(SoftwareSerial *Serial)	//read the uart signal by software uart,such as D10
-// {
-//     mySerial = Serial;
-//     receivedFlag = 0;
-// }
 
 ZE07H2::ZE07H2(int pin,float ref)//read the analog signal by analog input pin ,such as A2; ref:voltage on AREF pin
 {

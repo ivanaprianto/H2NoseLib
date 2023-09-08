@@ -21,7 +21,7 @@ class Nose
 
         //general functions
         void printOutput();
-        void printOutputBoth();
+        void printOutputBoth(bool inject = false);
         void setRatioInCleanAir(float x);
         void setPin1(int x);
         void setPin2(int x);
@@ -31,6 +31,9 @@ class Nose
         void setM(float x);
         void setPPM(float x, float y);
         void setPPM(float x);
+        void addUpAll();
+        void averageOut(int dataCount);
+        void setStart(float ppm);
         void returnToArray(float outs[2]);
 
         //get main data
@@ -38,6 +41,7 @@ class Nose
 
         //other data
         float getRL();
+        float getRL(float outs[2]);
         float getB();
         float getM();
         float getVoltage();
@@ -47,7 +51,6 @@ class Nose
         float calculateGradient(float b, float targetPPM);
         float calculateIntersect(float m, float targetPPM);
         float calculateCurrentRL(float targetPPM);
-        float gradientDescent(float o, float h, float lr, float c);
         float calibrate();
 
     private:
@@ -78,6 +81,9 @@ class Nose
         float _RL1;
         float _RL2;
         bool _com;
+        float _total;
+        float _total1;
+        float _total2;
         //MQ2-H2
         const double b2_h2 = 3.99626591;
         const double m2_h2 = -1.1690194965;
@@ -130,8 +136,6 @@ class Nose
         const float rsr07 = 27.5;
         const float rsr08 = 70.0;
         const float rsr09 = 9.6;
-        float f(float x, float o);
-        float d(float x, float h, float o);
 };
 
 class Thermocouple
