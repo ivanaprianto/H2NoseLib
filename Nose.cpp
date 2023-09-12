@@ -183,7 +183,7 @@ void Nose::setM(float x)
     _m = x;
 }
 
-void Nose::setStart(float ppm)
+void Nose::setStart(float ppm, bool prt)
 {
     _RL1 = 0.0;
     _RL2 = 0.0;
@@ -201,6 +201,11 @@ void Nose::setStart(float ppm)
     _RL1 = (_volt1 * rs) / (5.0/_volt1);
     _RL2 = (_volt2 * rs) / (5.0/_volt2);
     _RL = (_RL1 + _RL2)/2;
+    if (prt){
+        Serial.println("RL 1 :"+String(_RL1));
+        Serial.println("RL 2 :"+String(_RL2));
+        Serial.println("RL AVG :"+String(_RL));
+    }
 }
 
 float Nose::getRL()

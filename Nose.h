@@ -33,7 +33,7 @@ class Nose
         void setPPM(float x);
         void addUpAll();
         void averageOut(int dataCount);
-        void setStart(float ppm);
+        void setStart(float ppm, bool prt = false);
         void returnToArray(float outs[2]);
 
         //get main data
