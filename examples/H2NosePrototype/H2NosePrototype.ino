@@ -1,9 +1,12 @@
+#include <Nose.h>
 #define MQ2_A A0
 #define MQ2_B A1
 #define MQ3_A A2
 #define MQ3_B A3
 #define MQ4_A A4
 #define MQ4_B A5
+#define MQ6_A A6
+#define MQ6_B A7
 #define MQ7_A A8
 #define MQ7_B A9
 #define MQ8_A A10
@@ -12,125 +15,137 @@
 #define MQ9_B A13
 #define MG811_A A14
 #define MG811_B A15
-#include <Nose.h>
+int M2_H2 = 0;
+int M4_H2 = 1;
+int M6_H2 = 2;
+int M7_H2 = 3;
+int M8_H2 = 4;
+int M2_CO = 5;
+int M7_CO = 6;
+int M2_CH4 = 7;
+int M4_CH4 = 8;
+int M9_CH4 = 9;
+int M3_C6H6 = 10;
+int M2_C3H8 = 11;
+int M3_OH = 12;
+int M2_LPG = 13;
 
-const float rsr02 = 9.83;
-const float rsr03 = 60.0;
-const float rsr04 = 4.4;
-const float rsr07 = 27.5;
+const int mq2[2] = {MQ2_A, MQ2_B};
+const int mq3[2] = {MQ3_A, MQ3_B};
+const int mq4[2] = {MQ4_A, MQ4_B};
+const int mq6[2] = {MQ6_A, MQ6_B};
+const int mq7[2] = {MQ7_A, MQ7_B};
+const int mq8[2] = {MQ8_A, MQ8_B};
+const int mq9[2] = {MQ9_A, MQ9_B};
+const int mg811[2] = {MG811_A, MG811_B};
 
-const double b2_h2 = 3.99626591;
-const double m2_h2 = -1.1690194965;
+float rl2a[2] = {62.59, 62.59};
+float rl7a[2] = {19.75, 13.38};
+float rl4a[2] = {5.34, 20.12};
+float rl3a[2] = {200, 200};
+float rl6a[2] = {21.54, 16.54};
+float rl8a[2] = {121.39, 133.66};
+float rl9a[2] = {72.98, 63.07};
+float mg811_v[2] = {0.66, 2.40};
 
-const double b7_co = 1.4441096915;
-const double m7_co = -0.6705969873;
+int DO_1 = 4;
+int DO_2 = 5;
+int DO_3 = 6;
+int DO_4 = 7;
+int DO_5 = 8;
+int DO_6 = 9;
+int DO_7 = 10;
 
-const double b4_ch4 = 1.1001300621;
-const double m4_ch4 = -0.3613714269;
+int CS = 53;
+int CLK = 52;
 
-const double b3_benzene = 4.8387;
-const double m3_benzene = -2.68;
+int dhtPin = 3;
 
-const double b3_alcohol = 0.3934;
-const double m3_alcohol = -1.504;
+Nose MQ2_H2(mq2, rl2a, M2_H2, true);
+Nose MQ4_H2(mq4, rl4a, M4_H2);
+Nose MQ6_H2(mq6, rl6a, M6_H2);
+Nose MQ7_H2(mq7, rl7a, M7_H2);
+Nose MQ8_H2(mq8, rl8a, M8_H2);
+Nose MQ2_CO(mq2, rl2a, M2_CO);
+Nose MQ7_CO(mq7, rl7a, M7_CO);
+Nose MQ2_CH4(mq2, rl2a, M2_CH4);
+Nose MQ4_CH4(mq4, rl4a, M4_CH4);
+Nose MQ9_CH4(mq9, rl9a, M9_CH4);
+Nose MQ3_C6H6(mq3, rl3a, M3_C6H6);
+Nose MQ2_C3H8(mq2, rl2a, M2_C3H8);
+Nose MQ3_OH(mq3, rl3a, M3_OH);
+Nose MQ2_LPG(mq2, rl2a, M2_LPG);
+Nose MG811_CO2(mg811, mg811_v);
 
-const double m2_lpg = -0.4900080111;
-const double b2_lpg = 1.3688274357;
+Thermocouple one(CLK, CS, DO_1, "1");
+Thermocouple two(CLK, CS, DO_2, "2");
+Thermocouple three(CLK, CS, DO_3, "3");
+Thermocouple four(CLK, CS, DO_4, "4");
+Thermocouple five(CLK, CS, DO_5, "5");
+Thermocouple six(CLK, CS, DO_6, "6");
+Thermocouple seven(CLK, CS, DO_7, "7");
 
-const double m2_propane = -0.4756496415;
-const double b2_propane = 1.3504783634;
-
-const double MG811_V400 = 0.480;
-const double MG811_V4000 = 1.995;
-
-const float rl2 = 70;
-const float rl7 = 10;
-const float rl4 = 20;
-const float rl3 = 200;
-
-int DO = 4;
-int CS = 5;
-int CLK = 6;
-
-Nose MQ2_H2(MQ2_A, MQ2_B, false, b2_h2, m2_h2, rsr02, false, "H2", rl2, false);
-Nose MQ7_CO(MQ7_A, MQ7_B, false, b7_co, m7_co, rsr07, false, "CO", rl7, true);
-Nose MG811_CO2(MG811_A, MG811_B, false, MG811_V400, MG811_V4000, rsr02, true, "CO2", 0, true);
-Nose MQ4_CH4(MQ4_A, MQ4_B, false, b4_ch4, b4_ch4, rsr04, false, "CH4", rl4, true);
-Nose MQ3_C6H6(MQ3_A, MQ3_B, false, b3_benzene, m3_benzene, rsr03, false, "C6H6", rl3, true);
-Nose MQ2_C3H8(MQ2_A, MQ2_B, false, b2_propane, m2_propane, rsr02, false, "C3H8", rl2, true);
-Nose MQ3_OH(MQ3_A, MQ3_B, false, b3_alcohol, m3_alcohol, rsr03, false, "OH", rl3, true);
-Nose MQ2_LPG(MQ2_A, MQ2_B, false, b2_propane, m2_propane, rsr02, false, "LPG", rl2, true);
-Thermocouple fff(CLK, CS, DO);
-
-float sensorOuts[8];
+DHT22 dht(dhtPin);
 
 void setup() {
   Serial.begin(9600);
-  delay(500);
+  delay(250);
+  MQ2_H2.setStart(300);
+  MQ8_H2.setStart(300);
+
+  //if you want to print resistance values
+  //MQ8_H2.setStart(300, true);
+  //MQ2_H2.setStart(300, true);
+
 }
 
 void loop() {
-  float h2 = MQ2_H2.getOutput();
-  float co = MQ7_CO.getOutput();
-  float co2 = MG811_CO2.getOutput();
-  float ch4 = MQ4_CH4.getOutput();
-  float c6h6 = MQ3_C6H6.getOutput();
-  float c3h8 = MQ2_C3H8.getOutput();
-  float oh = MQ3_OH.getOutput();
-  float lpg = MQ2_LPG.getOutput();
-  fff.readTemps();
-
-  avgOut(h2, co, co2, ch4, c6h6, c3h8, oh, lpg, 1800, 1);
-  MQ2_H2.setPPM(sensorOuts[0]);
-  MQ7_CO.setPPM(sensorOuts[1]);
-  MG811_CO2.setPPM(sensorOuts[2]);
-  MQ4_CH4.setPPM(sensorOuts[3]);
-  MQ3_C6H6.setPPM(sensorOuts[4]);
-  MQ2_C3H8.setPPM(sensorOuts[5]);
-  MQ3_OH.setPPM(sensorOuts[6]);
-  MQ2_LPG.setPPM(sensorOuts[7]);
-  
-  Serial.print("{");
-  MQ2_H2.printOutput();
-  MQ7_CO.printOutput();
-  MG811_CO2.printOutput();
-  MQ4_CH4.printOutput();
-  MQ3_C6H6.printOutput();
-  MQ2_C3H8.printOutput();
-  MQ3_OH.printOutput();
-  MQ2_LPG.printOutput();
+  avgOut(25, 100); //25 samples spaced 100ms apart, theoretically 2.5 seconds, but due to arduino mega's performance the final delay is 4.2 seconds
+  one.printTemps();
+  two.printTemps();
+  three.printTemps();
+  four.printTemps();
+  five.printTemps();
+  six.printTemps();
+  seven.printTemps();
+  dht.printOutput();
   Serial.println("}");
 }
 
-void avgOut(float a, float b, float c, float d, float e, float f, float g, float h, int tries, int interval)
-{
-  float avga = 0.0;
-  float avgb = 0.0;
-  float avgc = 0.0;
-  float avgd = 0.0;
-  float avge = 0.0;
-  float avgf = 0.0;
-  float avgg = 0.0;
-  float avgh = 0.0;
-
-  for(int i = 0; i < tries; i++)
-  {
-    avga += a;
-    avgb += b;
-    avgc += c;
-    avgd += d;
-    avge += e;
-    avgf += f;
-    avgg += g;
-    avgh += h;
-    delay(interval);
+//average out sensor value
+void avgOut(int tries, int interval){
+  for(int i = 0; i < tries; i++){
+  MQ2_H2.addUpAll();
+  MQ4_H2.addUpAll();
+  MQ6_H2.addUpAll();
+  MQ7_H2.addUpAll();
+  MQ8_H2.addUpAll();
+  MQ2_CO.addUpAll();
+  MQ7_CO.addUpAll();
+  MG811_CO2.addUpAll();
+  MQ2_CH4.addUpAll();
+  MQ4_CH4.addUpAll();
+  MQ9_CH4.addUpAll();
+  MQ3_C6H6.addUpAll();
+  MQ2_C3H8.addUpAll();
+  MQ3_OH.addUpAll();
+  MQ2_LPG.addUpAll();
+  delay(interval);
   }
-  sensorOuts[0] = (avga/tries);
-  sensorOuts[1] = (avgb/tries);
-  sensorOuts[2] = (avgc/tries);
-  sensorOuts[3] = (avgd/tries);
-  sensorOuts[4] = (avge/tries);
-  sensorOuts[5] = (avgf/tries);
-  sensorOuts[6] = (avgg/tries);
-  sensorOuts[7] = (avgh/tries);
+  Serial.print("{");
+  MQ2_H2.averageOut(tries);
+  MQ4_H2.averageOut(tries);
+  MQ6_H2.averageOut(tries);
+  MQ7_H2.averageOut(tries);
+  MQ8_H2.averageOut(tries);
+  MQ2_CO.averageOut(tries);
+  MQ7_CO.averageOut(tries);
+  MG811_CO2.averageOut(tries);
+  MQ2_CH4.averageOut(tries);
+  MQ4_CH4.averageOut(tries);
+  MQ9_CH4.averageOut(tries);
+  MQ3_C6H6.averageOut(tries);
+  MQ2_C3H8.averageOut(tries);
+  MQ3_OH.averageOut(tries);
+  MQ2_LPG.averageOut(tries);
 }
