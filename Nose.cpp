@@ -202,9 +202,9 @@ void Nose::setStart(float ppm, bool prt)
     _RL2 = (_volt2 * rs) / (5.0/_volt2);
     _RL = (_RL1 + _RL2)/2;
     if (prt){
-        Serial.println("RL 1 :"+String(_RL1));
-        Serial.println("RL 2 :"+String(_RL2));
-        Serial.println("RL AVG :"+String(_RL));
+        Serial.println(_gasType+" RL 1 :"+String(_RL1));
+        Serial.println(_gasType+" RL 2 :"+String(_RL2));
+        Serial.println(_gasType+" RL AVG :"+String(_RL));
     }
 }
 
