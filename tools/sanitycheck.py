@@ -27,6 +27,15 @@ def calculateRL(ppm, readout, m, b, r0):
     rl = (volt*rs) / (5.0-volt)
     print(rl)
 
+def calculateRLAir(readout, m, b, r0, r0ppm):
+    ppm_log = math.log10(r0ppm)
+    c = ppm_log*m+b
+    ratio = 10**c
+    rs = ratio*r0*r0
+    volt = readout*(5.0/1023)
+    rl = (volt*rs) / (5.0-volt)
+    print(rl)
+
 def calculateB(ppm, readout, m, r0, rl):
     volt = readout*(5.0/1023)
     rs = ((5.0*rl)/volt)-rl
@@ -121,12 +130,21 @@ def calc(o, h, lr):
 r = input("RL/10BIT/INTERSECT/GRADIENT/PPM/MB/DESCENT : ")
 
 if r == "RL":
-    readout = float(input("10BIT DATA : "))
-    ppm = float(input("PPM : "))
-    m = float(input("M : "))
-    b = float(input("B : "))
-    r0 = float(input("R0 : "))
-    calculateRL(ppm, readout, m, b, r0)
+    g = input("AIR/PPM : ")
+    if g == "AIR":
+        readout = float(input("10BIT DATA : "))
+        m = float(input("M : "))
+        b = float(input("B : "))
+        r0 = float(input("R0 : "))
+        r0ppm = float(input("R0 PPM : "))
+        calculateRLAir(readout, m, b, r0, r0ppm)
+    else :
+        readout = float(input("10BIT DATA : "))
+        ppm = float(input("PPM : "))
+        m = float(input("M : "))
+        b = float(input("B : "))
+        r0 = float(input("R0 : "))
+        calculateRL(ppm, readout, m, b, r0)
 
 elif r == "DESCENT":
     o = float(input("O : "))

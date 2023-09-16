@@ -183,28 +183,45 @@ void Nose::setM(float x)
     _m = x;
 }
 
-void Nose::setStart(float ppm, bool prt)
+void Nose::setStart(float ppm, bool air, bool prt)
 {
-    _RL1 = 0.0;
-    _RL2 = 0.0;
-    _readout1 = analogRead(_pin1);
-    _volt1 = (_readout1 * (5.0/1023.0));
-    _readout2 = analogRead(_pin2);
-    _volt2 = (_readout2 * (5.0/1023.0));
-    _volt = (_readout1 + _readout2) / 2;
     
-    float ppm_log = log10(ppm);
-    float rat_log = ppm_log*_m+_b;
-    float ratio = pow(10, rat_log);
-    float rs = ratio*_R0;
+    if(!air){
+        _RL1 = 0.0;
+        _RL2 = 0.0;
+        _readout1 = analogRead(_pin1);
+        _volt1 = (_readout1 * (5.0/1023.0));
+        _readout2 = analogRead(_pin2);
+        _volt2 = (_readout2 * (5.0/1023.0));
+        _volt = (_readout1 + _readout2) / 2;
+        
+        float ppm_log = log10(ppm);
+        float rat_log = ppm_log*_m+_b;
+        float ratio = pow(10, rat_log);
+        float rs = ratio*_R0;
 
-    _RL1 = (_volt1 * rs) / (5.0/_volt1);
-    _RL2 = (_volt2 * rs) / (5.0/_volt2);
-    _RL = (_RL1 + _RL2)/2;
-    if (prt){
-        Serial.println(_gasType+" RL 1 :"+String(_RL1));
-        Serial.println(_gasType+" RL 2 :"+String(_RL2));
-        Serial.println(_gasType+" RL AVG :"+String(_RL));
+        _RL1 = (_volt1 * rs) / (5.0/_volt1);
+        _RL2 = (_volt2 * rs) / (5.0/_volt2);
+        _RL = (_RL1 + _RL2)/2;
+        if (prt){
+            Serial.println(_gasType+" RL 1 :"+String(_RL1));
+            Serial.println(_gasType+" RL 2 :"+String(_RL2));
+            Serial.println(_gasType+" RL AVG :"+String(_RL));
+        }
+    } else {
+        float ppm_log = log10(ppm);
+        float rat_log = ppm_log*_m+_b;
+        float ratio = pow(10, rat_log);
+        float rs = ratio*_R0*_R0;
+        
+        _RL1 = (_volt1 * rs) / (5.0/_volt1);
+        _RL2 = (_volt2 * rs) / (5.0/_volt2);
+        _RL = (_RL1 + _RL2)/2;
+        if (prt){
+            Serial.println(_gasType+" RL 1 :"+String(_RL1));
+            Serial.println(_gasType+" RL 2 :"+String(_RL2));
+            Serial.println(_gasType+" RL AVG :"+String(_RL));
+        }
     }
 }
 
