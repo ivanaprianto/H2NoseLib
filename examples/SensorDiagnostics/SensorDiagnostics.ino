@@ -65,8 +65,9 @@ Nose MQ2_LPG(mq2, rl2a, M2_LPG);
 Nose MG811_CO2(mg811, mg811_v);
 
 void setup(){
-    MQ2_H2.setStart(300, true);
-    MQ8_H2.setStart(300, true);
+    MQ2_H2.setStart(1000, true, true);
+    MQ4_H2.setStart(1000, true, true);
+    MQ8_H2.setStart(1000, true, true);
 }
 
 void loop(){
