@@ -121,19 +121,48 @@ Nose::Nose(int pin[2], float rl[2], int gastype, bool comm) //simple mode
         _R0 = rsr02; 
         _gasType = "MQ2_C3H8"; 
         break; 
-    case 12: 
+    case 12:
+        _m = m2_alcohol;
+        _b = b3_alcohol;
+        _R0 = rsr02;
+        _gasType = "MQ2_OH";
+    case 13: 
         _m = m3_alcohol; 
         _b = b3_alcohol; 
         _R0 = rsr03; 
         _gasType = "MQ3_OH"; 
         break; 
-    case 13: 
+    case 14: 
+        _m = m8_alcohol; 
+        _b = b8_alcohol; 
+        _R0 = rsr08; 
+        _gasType = "MQ8_OH"; 
+        break;
+    case 15: 
         _m = m2_lpg; 
         _b = b2_lpg; 
         _R0 = rsr02; 
         _gasType = "MQ2_LPG"; 
         break; 
-    case 14: 
+    case 16: 
+        _m = m4_lpg; 
+        _b = b4_lpg; 
+        _R0 = rsr04; 
+        _gasType = "MQ4_LPG"; 
+        break; 
+    case 17: 
+        _m = m6_lpg; 
+        _b = b6_lpg; 
+        _R0 = rsr06; 
+        _gasType = "MQ6_LPG"; 
+        break; 
+    case 18: 
+        _m = m9_lpg; 
+        _b = b9_lpg; 
+        _R0 = rsr09; 
+        _gasType = "MQ9_LPG"; 
+        break; 
+    case 19: 
         _b = _RL1; 
         _m = _RL2; 
         _R0 = 0; 
