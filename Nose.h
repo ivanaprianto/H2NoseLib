@@ -84,27 +84,9 @@ class Nose
         float _total;
         float _total1;
         float _total2;
-        //MQ2-H2
-        const double b2_h2 = 3.99626591;
+        // MQ2-H2
         const double m2_h2 = -1.1690194965;
-        //MQ7-CO
-        const double b7_co = 1.4441096915;
-        const double m7_co = -0.6705969873;
-        //MQ4-CH4
-        const double b4_ch4 = 1.1001300621;
-        const double m4_ch4 = -0.3613714269;
-        //MQ3-C6H6
-        const double b3_benzene = 4.8387;
-        const double m3_benzene = -2.68;
-        //MQ3-OH
-        const double b3_alcohol = 0.3934;
-        const double m3_alcohol = -1.504;
-        //MQ2-LPG
-        const double m2_lpg = -0.4900080111;
-        const double b2_lpg = 1.3688274357;
-        // MQ2-C3H8
-        const double m2_propane = -0.4756496415;
-        const double b2_propane = 1.3504783634;
+        const double b2_h2 = 3.99626591;
         // MQ4-H2 
         const double m4_h2 = -0.1528128737;
         const double b4_h2 = 0.88540934406;
@@ -120,15 +102,48 @@ class Nose
         // MQ2-CO
         const double m2_co = -0.3128241909;
         const double b2_co = 1.42738802266;
+        // MQ7-CO
+        const double m7_co = -0.6705969873;
+        const double b7_co = 1.4441096915;
         // MQ2-CH4
         const double m2_ch4 = -0.3720037523;
         const double b2_ch4 = 1.33311304481;
+        // MQ4-CH4
+        const double m4_ch4 = -0.3613714269;
+        const double b4_ch4 = 1.1001300621;
         // MQ6-CH4
         const double m6_ch4 = -0.4017608236;
         const double b6_ch4 = 1.33943705422;
         // MQ9-CH4
         const double m9_ch4 = -0.3803855584;
         const double b9_ch4 = 1.36664027361;
+        // MQ3-C6H6
+        const double m3_benzene = -2.68;
+        const double b3_benzene = 4.8387;
+        // MQ2-C3H8
+        const double m2_propane = -0.4756496415;
+        const double b2_propane = 1.3504783634;
+        // MQ2-OH
+        const double m2_alcohol = -0.370747619784;
+        const double b2_alcohol = 1.31549939184;
+        // MQ3-OH
+        const double m3_alcohol = -1.504;
+        const double b3_alcohol = 0.3934;
+        // MQ8-OH
+        const double m8_alcohol = -0.599026918876;
+        const double b8_alcohol = 2.77631891722;
+        // MQ2-LPG
+        const double m2_lpg = -0.4900080111;
+        const double b2_lpg = 1.3688274357;
+        // MQ4-LPG 
+        const double m4_lpg = -0.274092305273;
+        const double b4_lpg = 0.971430484482;
+        // MQ6-LPG
+        const double m6_lpg = -0.356813804571;
+        const double b6_lpg = 1.14325856192;
+        // MQ9-LPG 
+        const double m9_lpg = -0.473054469946;
+        const double b9_lpg = 1.41073181966;
         const float rsr02 = 9.83;
         const float rsr03 = 60.0;
         const float rsr04 = 4.4;
